@@ -32,9 +32,13 @@ openwrt_current_version() {
 }
 
 arch_latest_installed() {
+    local package
     case "$1" in
         LTS)
             package=linux-lts
+            ;;
+        VFIO)
+            package=linux-vfio
             ;;
         *)
             package=linux
@@ -44,6 +48,7 @@ arch_latest_installed() {
 }
 
 archarm_latest_installed() {
+    local package
     case "$1" in
         *)
             package=linux-raspberrypi
@@ -61,12 +66,11 @@ openwrt_latest_installed() {
 }
 
 arch_kernel_flavour() {
-    if uname -a | grep -iq lts
-    then
-        echo LTS
-    else
-        echo latest
-    fi
+    case "$(uname -a)" in
+        *vfio*) echo VFIO ;;
+        *lts*) echo LTS ;;
+        *) echo latest ;;
+    esac
 }
 
 archarm_kernel_flavour() {
