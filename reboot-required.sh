@@ -93,7 +93,7 @@ kernel_flavour() {
         archarm)
             archarm_kernel_flavour
             ;;
-        turris|openwrt)
+        turris|openwrt|lede)
             echo latest
             ;;
         *)
@@ -119,7 +119,7 @@ package_check() {
             current_version=$(turris_current_version "$1")
             latest_installed_version=$(turris_latest_installed "$1")
             ;;
-        openwrt)
+        openwrt|lede)
             current_version=$(openwrt_current_version "$1")
             latest_installed_version=$(openwrt_latest_installed "$1")
             ;;
