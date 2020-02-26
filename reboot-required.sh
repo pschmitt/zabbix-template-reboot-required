@@ -63,8 +63,8 @@ openwrt_latest_installed() {
 }
 
 fedora_latest_installed() {
-  dnf list installed | grep "kernel.$(uname -m)" | sort -r | head -1 | \
-    awk '{ print $2 }' | sed -r 's/.fc[0-9]+$//g'
+  dnf list installed | grep "kernel.$(uname -m)" | \
+    awk '{ print $2 }' | sort -rn | head -1 | sed -r 's/.fc[0-9]+$//g'
 }
 
 arch_kernel_flavour() {
