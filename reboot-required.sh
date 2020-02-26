@@ -87,7 +87,7 @@ kernel_flavour() {
   esac
 }
 
-package_check() {
+reboot_check() {
   local current_version
   local latest_installed_version
   case "$ID" in
@@ -112,12 +112,47 @@ package_check() {
       exit 3
       ;;
   esac
+
+  message=
+
   if test "$current_version" != "$latest_installed_version"
   then
-    echo "Yes - Kernel update: $current_version -> $latest_installed_version"
-  else
-    echo No
+    message="Yes - Kernel update: $current_version -> $latest_installed_version"
   fi
+  # check needs-restarting
+  case "$ID" in
+    ubuntu|neon)
+      if test -e /var/run/reboot-required
+      then
+        needs_r="/var/run/reboot-required is present on the system"
+        if test -z "$message"
+        then
+          message="Yes - $needs_r"
+        else
+          message="$message + $needs_r"
+        fi
+      fi
+      ;;
+    fedora)
+      needs_r=$(sudo needs-restarting -r)
+      if test $? -eq 0
+      then
+        if test -z "$message"
+        then
+          message="Yes - $needs_r"
+        else
+          message="$message + $needs_r"
+        fi
+      fi
+      ;;
+  esac
+
+  if test -z "$message"
+  then
+    message="No"
+  fi
+
+  echo -e "$message"
 }
 
 case "$1" in
@@ -125,7 +160,7 @@ case "$1" in
     kernel_flavour
     ;;
   *)
-    package_check "$(kernel_flavour)"
+    reboot_check "$(kernel_flavour)"
     ;;
 esac
 
