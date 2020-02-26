@@ -29,6 +29,10 @@ fedora_current_version() {
   uname -r | sed -r 's/.fc[0-9]+.*//'
 }
 
+ubuntu_current_version() {
+  arch_current_version
+}
+
 arch_latest_installed() {
   local package
   case "$1" in
@@ -64,6 +68,13 @@ fedora_latest_installed() {
     awk '{ print $2 }' | sort -rn | head -1 | sed -r 's/.fc[0-9]+$//g'
 }
 
+ubuntu_latest_installed() {
+  dpkg --list | grep linux-image | \
+    awk '{ print $2 }' | grep -v 'linux-image-generic-hwe' | \
+    sort -nr | head -1 | \
+    sed -r 's/linux-image-(.+)-generic/\1/'
+}
+
 arch_kernel_flavour() {
   case "$(uname -a)" in
     *vfio*) echo VFIO ;;
@@ -77,7 +88,7 @@ kernel_flavour() {
     arch|antergos)
       arch_kernel_flavour
       ;;
-    archarm|turrisos|openwrt|lede|fedora)
+    archarm|turrisos|openwrt|lede|fedora|ubuntu|neon)
       echo latest
       ;;
     *)
@@ -110,6 +121,10 @@ check_kernel_update() {
     fedora)
       current_version=$(fedora_current_version "$flavor")
       latest_installed_version=$(fedora_latest_installed "$flavor")
+      ;;
+    ubuntu|neon)
+      current_version=$(ubuntu_current_version "$flavor")
+      latest_installed_version=$(ubuntu_latest_installed "$flavor")
       ;;
     *)
       echo "Unsupported distribution" >&2
