@@ -77,6 +77,8 @@ raspbian_latest_installed() {
   then
     sudo needrestart -m a -b -k -p -n -r l | \
       sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
+  else
+    echo "UNKNOWN. Please install needrestart" >&2
   fi
 }
 
