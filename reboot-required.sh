@@ -87,25 +87,29 @@ kernel_flavour() {
   esac
 }
 
-reboot_check() {
+check_kernel_update() {
   local current_version
+  local flavor
   local latest_installed_version
+
+  flavor="$(kernel_flavour)"
+
   case "$ID" in
     arch|antergos)
       current_version=$(arch_current_version)
-      latest_installed_version=$(arch_latest_installed "$1")
+      latest_installed_version=$(arch_latest_installed "$flavor")
       ;;
     archarm)
       current_version=$(archarm_current_version)
-      latest_installed_version=$(archarm_latest_installed "$1")
+      latest_installed_version=$(archarm_latest_installed "$flavor")
       ;;
     openwrt|lede|turrisos)
-      current_version=$(openwrt_current_version "$1")
-      latest_installed_version=$(openwrt_latest_installed "$1")
+      current_version=$(openwrt_current_version "$flavor")
+      latest_installed_version=$(openwrt_latest_installed "$flavor")
       ;;
     fedora)
-      current_version=$(fedora_current_version "$1")
-      latest_installed_version=$(fedora_latest_installed "$1")
+      current_version=$(fedora_current_version "$flavor")
+      latest_installed_version=$(fedora_latest_installed "$flavor")
       ;;
     *)
       echo "Unsupported distribution" >&2
@@ -113,46 +117,62 @@ reboot_check() {
       ;;
   esac
 
-  message=
-
   if test "$current_version" != "$latest_installed_version"
   then
-    message="Yes - Kernel update: $current_version -> $latest_installed_version"
+    echo "Kernel update: $current_version -> $latest_installed_version"
+    return 1
   fi
-  # check needs-restarting
+  return 0
+}
+
+check_extra() {
   case "$ID" in
     ubuntu|neon)
       if test -e /var/run/reboot-required
       then
-        needs_r="/var/run/reboot-required is present on the system"
-        if test -z "$message"
-        then
-          message="Yes - $needs_r"
-        else
-          message="$message + $needs_r"
-        fi
+        echo "/var/run/reboot-required is present on the system"
+        return 1
       fi
       ;;
     fedora)
       needs_r=$(sudo needs-restarting -r)
-      if test $? -eq 0
+      if test $? -eq 1
       then
-        if test -z "$message"
-        then
-          message="Yes - $needs_r"
-        else
-          message="$message + $needs_r"
-        fi
+        echo "$needs_r"
+        return 1
       fi
       ;;
   esac
+}
 
-  if test -z "$message"
+reboot_check() {
+  local kernel
+  local message=No
+  local misc
+  local reboot_required=0
+
+  kernel=$(check_kernel_update)
+
+  if test $? -ne 0
   then
-    message="No"
+    reboot_required=1
+    message="$kernel"
   fi
 
-  echo -e "$message"
+  misc=$(check_extra)
+
+  if test $? -ne 0
+  then
+    reboot_required=1
+    message="$message$misc"
+  fi
+
+  if test "$reboot_required" -ne 0
+  then
+    message="Yes - $message"
+  fi
+
+  echo "$message"
 }
 
 case "$1" in
@@ -160,7 +180,7 @@ case "$1" in
     kernel_flavour
     ;;
   *)
-    reboot_check "$(kernel_flavour)"
+    reboot_check
     ;;
 esac
 
