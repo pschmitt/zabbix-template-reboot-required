@@ -33,6 +33,10 @@ ubuntu_current_version() {
   arch_current_version
 }
 
+raspbian_current_version() {
+  uname -r
+}
+
 arch_latest_installed() {
   local package
   case "$1" in
@@ -68,6 +72,14 @@ fedora_latest_installed() {
     awk '{ print $2 }' | sort -rn | head -1 | sed -r 's/.fc[0-9]+$//g'
 }
 
+raspbian_latest_installed() {
+  if command -v needrestart > /dev/null
+  then
+    sudo needrestart -m a -b -k -p -n -r l | \
+      sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
+  fi
+}
+
 ubuntu_latest_installed() {
   dpkg --list | grep linux-image | \
     awk '{ print $2 }' | grep -v 'linux-image-generic-hwe' | \
@@ -88,7 +100,7 @@ kernel_flavour() {
     arch|antergos)
       arch_kernel_flavour
       ;;
-    archarm|turrisos|openwrt|lede|fedora|ubuntu|neon)
+    archarm|turrisos|openwrt|lede|fedora|ubuntu|neon|raspbian)
       echo latest
       ;;
     *)
@@ -126,6 +138,10 @@ check_kernel_update() {
       current_version=$(ubuntu_current_version "$flavor")
       latest_installed_version=$(ubuntu_latest_installed "$flavor")
       ;;
+    raspbian)
+      current_version=$(raspbian_current_version "$flavor")
+      latest_installed_version=$(raspbian_latest_installed "$flavor")
+      ;;
     *)
       echo "Unsupported distribution" >&2
       exit 3
@@ -141,12 +157,23 @@ check_kernel_update() {
 }
 
 check_extra() {
+  local need_r
+
   case "$ID" in
-    ubuntu|neon)
+    ubuntu|neon|raspbian)
       if test -e /var/run/reboot-required
       then
         echo "/var/run/reboot-required is present on the system"
         return 1
+      fi
+      if command -v needrestart > /dev/null
+      then
+        need_r=$(sudo needrestart -m a -b -n -r l -l -p)
+        if echo "$need_r" | grep -q CRIT
+        then
+          echo "needrestart:\n$need_r"
+          return 1
+        fi
       fi
       ;;
     fedora)
@@ -179,7 +206,12 @@ reboot_check() {
   if test $? -ne 0
   then
     reboot_required=1
-    message="$message$misc"
+    if test -z "$message"
+    then
+      message="$misc"
+    else
+      message="$message\n\n$misc"
+    fi
   fi
 
   if test "$reboot_required" -ne 0
@@ -195,6 +227,10 @@ case "$1" in
     kernel_flavour
     ;;
   *)
+    # TODO Add flags for only checking the kernel, or the services
+    # -k: kernel only
+    # -s: services only
+    # NONE: both
     reboot_check
     ;;
 esac
