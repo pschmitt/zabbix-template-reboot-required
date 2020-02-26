@@ -3,9 +3,6 @@
 if test -r /etc/os-release
 then
   . /etc/os-release
-elif test -r /etc/turris-version
-then
-  ID=turris
 elif test -r /etc/openwrt_version
 then
   ID=openwrt
@@ -61,10 +58,6 @@ archarm_latest_installed() {
   pacman -Qi "$package" | awk '/Version/ {print $3}'
 }
 
-turris_latest_installed() {
-  opkg list-installed | awk '/kernel - / {print $NF}'
-}
-
 openwrt_latest_installed() {
   opkg list-installed | awk '/kernel - / {print $NF}' | cut -d - -f 1
 }
@@ -82,18 +75,6 @@ arch_kernel_flavour() {
   esac
 }
 
-archarm_kernel_flavour() {
-  echo latest
-}
-
-turris_kernel_flavour() {
-  echo latest
-}
-
-openwrt_kernel_flavour() {
-  echo latest
-}
-
 fedora_kernel_flavour() {
   echo latest
 }
@@ -103,10 +84,7 @@ kernel_flavour() {
     arch|antergos)
       arch_kernel_flavour
       ;;
-    archarm)
-      archarm_kernel_flavour
-      ;;
-    turris|openwrt|lede|fedora)
+    archarm|turrisos|openwrt|lede|fedora)
       echo latest
       ;;
     *)
@@ -128,11 +106,7 @@ package_check() {
       current_version=$(archarm_current_version)
       latest_installed_version=$(archarm_latest_installed "$1")
       ;;
-    turris)
-      current_version=$(turris_current_version "$1")
-      latest_installed_version=$(turris_latest_installed "$1")
-      ;;
-    openwrt|lede)
+    openwrt|lede|turrisos)
       current_version=$(openwrt_current_version "$1")
       latest_installed_version=$(openwrt_latest_installed "$1")
       ;;
