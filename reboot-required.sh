@@ -2,6 +2,7 @@
 
 if test -r /etc/os-release
 then
+  # shellcheck disable=1091
   . /etc/os-release
 elif test -r /etc/openwrt_version
 then
@@ -20,12 +21,8 @@ archarm_current_version() {
   arch_current_version
 }
 
-turris_current_version() {
-  arch_current_version
-}
-
 openwrt_current_version() {
-  arch_current_version
+  uname -r
 }
 
 fedora_current_version() {
@@ -73,10 +70,6 @@ arch_kernel_flavour() {
     *lts*) echo LTS ;;
     *) echo latest ;;
   esac
-}
-
-fedora_kernel_flavour() {
-  echo latest
 }
 
 kernel_flavour() {
