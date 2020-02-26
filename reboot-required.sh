@@ -142,7 +142,7 @@ check_kernel_update() {
       ;;
     raspbian)
       current_version=$(raspbian_current_version "$flavor")
-      latest_installed_version=$(raspbian_latest_i/var/run/reboot-requirednstalled "$flavor")
+      latest_installed_version=$(raspbian_latest_installed "$flavor")
       ;;
     *)
       echo "Unsupported distribution" >&2
