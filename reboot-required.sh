@@ -142,7 +142,7 @@ check_kernel_update() {
       ;;
     raspbian)
       current_version=$(raspbian_current_version "$flavor")
-      latest_installed_version=$(raspbian_latest_installed "$flavor")
+      latest_installed_version=$(raspbian_latest_i/var/run/reboot-requirednstalled "$flavor")
       ;;
     *)
       echo "Unsupported distribution" >&2
@@ -159,6 +159,7 @@ check_kernel_update() {
 }
 
 check_extra() {
+  local failed=0
   local need_r
 
   case "$ID" in
@@ -166,7 +167,7 @@ check_extra() {
       if test -e /var/run/reboot-required
       then
         echo "/var/run/reboot-required is present on the system"
-        return 1
+        failed=1
       fi
       if command -v needrestart > /dev/null
       then
@@ -174,9 +175,10 @@ check_extra() {
         if echo "$need_r" | grep -q CRIT
         then
           echo "needrestart:\n$need_r"
-          return 1
+          failed=1
         fi
       fi
+      return $failed
       ;;
     fedora)
       needs_r=$(sudo needs-restarting -r)
