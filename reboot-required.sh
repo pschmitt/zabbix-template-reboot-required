@@ -75,7 +75,7 @@ fedora_latest_installed() {
 raspbian_latest_installed() {
   if command -v needrestart > /dev/null
   then
-    sudo needrestart -m a -b -k -p -n -r l | \
+    sudo needrestart -m a -b -k -p -n -r l -k | \
       sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
   else
     echo "UNKNOWN. Please install needrestart" >&2
