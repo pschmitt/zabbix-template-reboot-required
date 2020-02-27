@@ -171,10 +171,10 @@ check_extra() {
       fi
       if command -v needrestart > /dev/null
       then
-        need_r=$(sudo needrestart -m a -b -n -r l -l -p)
+        need_r=$(sudo needrestart -m a -b -n -r l -l -k -p)
         if echo "$need_r" | grep -q CRIT
         then
-          echo "needrestart:\n$need_r"
+          echo "$need_r"
           failed=1
         fi
       fi
@@ -220,7 +220,7 @@ reboot_check() {
 
   if test "$reboot_required" -ne 0
   then
-    message="Yes - $message"
+    message="Yes\n$message"
   fi
 
   echo "$message"
