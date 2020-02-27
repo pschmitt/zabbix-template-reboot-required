@@ -223,7 +223,7 @@ reboot_check() {
     message="Yes\n$message"
   fi
 
-  echo "$message"
+  echo -e "$message"
 }
 
 case "$1" in
