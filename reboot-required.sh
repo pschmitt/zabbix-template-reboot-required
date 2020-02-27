@@ -224,7 +224,7 @@ reboot_check() {
     message="Yes\n$message"
   fi
 
-  echo -e "$message"
+  printf "$message\n"
 }
 
 case "$1" in
