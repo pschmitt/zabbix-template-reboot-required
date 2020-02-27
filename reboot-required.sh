@@ -73,7 +73,8 @@ fedora_latest_installed() {
 }
 
 raspbian_latest_installed() {
-  if dpkg --list | grep -q needrestart
+  # FIXME command -v does not work here for some reason
+  if sudo needrestart --help >/dev/null 2>&1
   then
     sudo needrestart -m a -b -k -p -n -r l -k | \
       sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
@@ -169,7 +170,7 @@ check_extra() {
         echo "/var/run/reboot-required is present on the system"
         failed=1
       fi
-      if command -v needrestart > /dev/null
+      if sudo needrestart --help >/dev/null 2>&1
       then
         need_r=$(sudo needrestart -m a -b -n -r l -l -k -p)
         if echo "$need_r" | grep -q CRIT
