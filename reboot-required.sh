@@ -73,7 +73,7 @@ fedora_latest_installed() {
 }
 
 raspbian_latest_installed() {
-  if command -v needrestart > /dev/null
+  if dpkg --list | grep -q needrestart
   then
     sudo needrestart -m a -b -k -p -n -r l -k | \
       sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
