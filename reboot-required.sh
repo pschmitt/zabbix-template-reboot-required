@@ -9,6 +9,8 @@ then
   ID=openwrt
 fi
 
+CACHE_FILE=/tmp/.speedtest.cache
+
 usage() {
   echo "Usage: $(basename "$0") [discover|pkg-check]"
 }
@@ -76,7 +78,7 @@ raspbian_latest_installed() {
   # FIXME command -v does not work here for some reason
   if sudo needrestart --help >/dev/null 2>&1
   then
-    sudo needrestart -m a -b -k -p -n -r l -k | \
+    needrestart_cached | \
       sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
   else
     echo "UNKNOWN. Please install needrestart" >&2
@@ -159,6 +161,20 @@ check_kernel_update() {
   return 0
 }
 
+needrestart_cached() {
+  local val
+
+  val="$(cat "$CACHE_FILE" 2>/dev/null)"
+  if test -z "$val"
+  then
+    # echo "CACHE MISS..!" >&2
+    sudo needrestart -m a -b -n -r l -l -k -p | tee "$CACHE_FILE" /dev/stdout
+  else
+    # echo "CACHE HIT" >&2
+    echo "$val"
+  fi
+}
+
 check_extra() {
   local failed=0
   local need_r
@@ -172,7 +188,7 @@ check_extra() {
       fi
       if sudo needrestart --help >/dev/null 2>&1
       then
-        need_r=$(sudo needrestart -m a -b -n -r l -l -k -p)
+        need_r="$(needrestart_cached)"
         if echo "$need_r" | grep -q CRIT
         then
           echo "$need_r"
@@ -226,6 +242,9 @@ reboot_check() {
 
   printf "$message\n"
 }
+
+rm "$CACHE_FILE"
+trap 'echo "Cleanup caches" >&2; rm -f "$CACHE_FILE"' EXIT
 
 case "$1" in
   kernel-flavour)
