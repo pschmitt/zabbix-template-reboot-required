@@ -185,9 +185,22 @@ check_kernel_update() {
   return 0
 }
 
-check_extra() {
+check_services() {
   local failed=0
   local need_r
+
+  if sudo needrestart --help >/dev/null 2>&1
+  then
+    # shellcheck disable=2024
+    need_r="$(sudo needrestart -m a -b -n -r l -l -p 2>/dev/null)"
+  else
+    echo "ERROR: Please install needrestart" >&2
+  fi
+  if echo "$need_r" | grep -q CRIT
+  then
+    echo "$need_r"
+    failed=1
+  fi
 
   case "$ID" in
     ubuntu|neon|raspbian)
@@ -196,29 +209,16 @@ check_extra() {
         echo "/var/run/reboot-required is present on the system"
         failed=1
       fi
-      if sudo needrestart --help >/dev/null 2>&1
-      then
-        # shellcheck disable=2024
-        need_r="$(sudo needrestart -m a -b -n -r l -l -p 2>/dev/null)"
-      else
-        echo "ERROR: Please install needrestart" >&2
-      fi
-      if echo "$need_r" | grep -q CRIT
-      then
-        echo "$need_r"
-        failed=1
-      fi
-      return $failed
       ;;
     fedora)
       needs_r=$(sudo needs-restarting -r)
       if test $? -eq 1
       then
         echo "$needs_r"
-        return 1
       fi
       ;;
   esac
+  return $failed
 }
 
 reboot_check() {
@@ -230,14 +230,14 @@ reboot_check() {
   if test "$#" -eq 0
   then
     KERNEL=1
-    MISC=1
+    SERVICES=1
   else
     case "$1" in
-      -k|--kernel)
+      -k|--kernel|kernel|k)
         KERNEL=1
         ;;
-      -m|--misc)
-        MISC=1
+      -s|--services|--svc|services|svc|s)
+        SERVICES=1
         ;;
     esac
   fi
@@ -253,7 +253,7 @@ reboot_check() {
     fi
   fi
 
-  if test -n "$MISC"
+  if test -n "$SERVICES"
   then
     tmp=$(check_extra)
 
