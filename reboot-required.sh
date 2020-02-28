@@ -20,6 +20,8 @@ usage() {
 }
 
 arch_current_version() {
+  # Remove the kernel flavor at the end
+  # 5.4.22-1-lts -> 5.4.22-1
   uname -r | sed 's/-[^0-9]*$//'
 }
 
@@ -32,6 +34,8 @@ openwrt_current_version() {
 }
 
 fedora_current_version() {
+  # Remove the Fedora version and arch at the end
+  # 5.5.5-200.fc31.x86_64 -> 5.5.5-200
   uname -r | sed -r 's/.fc[0-9]+.*//'
 }
 
@@ -40,11 +44,14 @@ ubuntu_current_version() {
 }
 
 raspbian_current_version() {
-  uname -r
+  # Remove the architecture at the end
+  # 4.19.97-v7+ -> 4.19.97
+  uname -r | sed -r 's/-v.+$//'
 }
 
 arch_latest_installed() {
   local package
+
   case "$1" in
     LTS)
       package=linux-lts
@@ -61,6 +68,7 @@ arch_latest_installed() {
 
 archarm_latest_installed() {
   local package
+
   case "$1" in
     *)
       package=linux-raspberrypi
