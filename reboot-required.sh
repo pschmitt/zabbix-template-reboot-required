@@ -81,7 +81,8 @@ raspbian_latest_installed() {
 
 ubuntu_latest_installed() {
   dpkg --list | grep linux-image | \
-    awk '{ print $2 }' | grep -v 'linux-image-generic-hwe' | \
+    grep -v 'linux-image-generic' | \
+    awk '{ print $2 }' | \
     sort -nr | head -1 | \
     sed -r 's/linux-image-(.+)-generic/\1/'
 }
