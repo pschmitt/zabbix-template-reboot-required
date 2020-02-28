@@ -255,7 +255,7 @@ reboot_check() {
 
   if test -n "$SERVICES"
   then
-    tmp=$(check_extra)
+    tmp=$(check_services)
 
     if test $? -ne 0
     then
