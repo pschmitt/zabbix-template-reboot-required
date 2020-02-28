@@ -206,7 +206,8 @@ check_extra() {
 }
 
 reboot_check() {
-  local message="No reboot required ✔"
+  local reboot_required=0
+  local message
   local KERNEL MISC
   local tmp
 
@@ -231,6 +232,7 @@ reboot_check() {
 
     if test $? -ne 0
     then
+      reboot_required=1
       message="$tmp"
     fi
   fi
@@ -241,6 +243,7 @@ reboot_check() {
 
     if test $? -ne 0
     then
+      reboot_required=1
       if test -z "$message"
       then
         message="$tmp"
@@ -248,6 +251,11 @@ reboot_check() {
         message="$message\n\n$tmp"
       fi
     fi
+  fi
+
+  if test "$reboot_required" = "0"
+  then
+    message="No reboot required ✔"
   fi
 
   # shellcheck disable=2039
