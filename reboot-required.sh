@@ -12,7 +12,11 @@ fi
 CACHE_FILE=/tmp/.speedtest.cache
 
 usage() {
-  echo "Usage: $(basename "$0") [discover|pkg-check]"
+  echo "Usage: $(basename "$0") [kernel-flavour] [-m] [-k]"
+  echo
+  echo "-K: Output the current kernel flavor"
+  echo "-k: Only check for updated kernel version (default: enabled)"
+  echo "-m: Perform extra checks (default: enabled)"
 }
 
 arch_current_version() {
@@ -272,11 +276,13 @@ rm "$CACHE_FILE" 2>/dev/null
 trap 'rm -f "$CACHE_FILE"' EXIT
 
 case "$1" in
-  kernel-flavour)
+  help|h|--help|-h)
+    usage
+    ;;
+  -K)
     kernel_flavour
     ;;
   *)
-    # TODO Add flags for only checking the kernel, or the services
     # -k: kernel only
     # -m: Misc. services only
     # NONE: both
