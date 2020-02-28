@@ -1,16 +1,5 @@
 #!/usr/bin/env sh
 
-if test -r /etc/os-release
-then
-  # shellcheck disable=1091
-  . /etc/os-release
-elif test -r /etc/openwrt_version
-then
-  ID=openwrt
-fi
-
-CACHE_FILE=/tmp/.speedtest.cache
-
 usage() {
   echo "Usage: $(basename "$0") [kernel-flavour] [-m] [-k]"
   echo
@@ -87,8 +76,36 @@ fedora_latest_installed() {
 }
 
 raspbian_latest_installed() {
-  needrestart_cached | \
-    sed -nr 's/CRIT - Kernel: (.+)!=([^ ]+) +.+/\2/p' # | head -1
+  local val
+  local kernel_file
+
+  case "$(uname -a)" in
+    armv7l)
+      kernel_file="/boot/kernel7.img"
+      ;;
+    aarch64)
+      kernel_file="/boot/kernel8.img"
+      ;;
+    *)
+      kernel_file="/boot/kernel7l.img"
+      ;;
+  esac
+
+  if test -e /usr/lib/needrestart/vmlinuz-get-version
+  then
+    val="$(/usr/lib/needrestart/vmlinuz-get-version "$kernel_file")"
+    # echo "Unable to determine current kernel version. Please install needrestart." >&2
+  else
+    # Download latest vmlinuz-get-version
+    curl -qqsL -o /tmp/vmlinuz-get-version \
+      https://github.com/liske/needrestart/raw/master/lib/vmlinuz-get-version
+    val="$(bash /tmp/vmlinuz-get-version "$kernel_file")"
+    rm /tmp/vmlinuz-get-version
+  fi
+  # Extract version
+  # Linux version 4.19.97-v7+ (dom@buildbot) (gcc version[...]  -> 4.19.97
+  # Linux version 4.19.97+ (dom@buildbot) (gcc version[...] -> 4.19.97
+  echo "$val" | sed -n -r 's/Linux version ([0-9.]+)[-+]v?.*/\1/p'
 }
 
 ubuntu_latest_installed() {
@@ -168,25 +185,6 @@ check_kernel_update() {
   return 0
 }
 
-needrestart_cached() {
-  local val
-
-  val="$(cat "$CACHE_FILE" 2>/dev/null)"
-  if test -z "$val"
-  then
-    # FIXME command -v does not work here for some reason (raspbian)
-    if sudo needrestart --help >/dev/null 2>&1
-    then
-      # shellcheck disable=2024
-      sudo needrestart -m a -b -n -r l -l -k -p 2>/dev/null > "$CACHE_FILE"
-      val="$(cat "$CACHE_FILE")"
-    else
-      echo "ERROR: Please install needrestart" >&2
-    fi
-  fi
-  echo "$val"
-}
-
 check_extra() {
   local failed=0
   local need_r
@@ -198,7 +196,13 @@ check_extra() {
         echo "/var/run/reboot-required is present on the system"
         failed=1
       fi
-      need_r="$(needrestart_cached)"
+      if sudo needrestart --help >/dev/null 2>&1
+      then
+        # shellcheck disable=2024
+        need_r="$(sudo needrestart -m a -b -n -r l -l -p 2>/dev/null)"
+      else
+        echo "ERROR: Please install needrestart" >&2
+      fi
       if echo "$need_r" | grep -q CRIT
       then
         echo "$need_r"
@@ -280,8 +284,15 @@ reboot_check() {
   fi
 }
 
-rm "$CACHE_FILE" 2>/dev/null
-trap 'rm -f "$CACHE_FILE"' EXIT
+if test -r /etc/os-release
+then
+  # shellcheck disable=1091
+  . /etc/os-release
+# Old (pre 19.07.1) OpenWRT version don't carry an /etc/os-release
+elif test -r /etc/openwrt_version
+then
+  ID=openwrt
+fi
 
 case "$1" in
   help|h|--help|-h)
