@@ -75,14 +75,8 @@ fedora_latest_installed() {
 }
 
 raspbian_latest_installed() {
-  # FIXME command -v does not work here for some reason
-  if sudo needrestart --help >/dev/null 2>&1
-  then
-    needrestart_cached | \
-      sed -nr 's/CRIT - Kernel: (.+)!=(.+) +.+/\2/p'
-  else
-    echo "UNKNOWN. Please install needrestart" >&2
-  fi
+  needrestart_cached | \
+    sed -nr 's/CRIT - Kernel: (.+)!=([^ ]+) +.+/\2/p'
 }
 
 ubuntu_latest_installed() {
@@ -168,7 +162,13 @@ needrestart_cached() {
   if test -z "$val"
   then
     # echo "CACHE MISS..!" >&2
-    sudo needrestart -m a -b -n -r l -l -k -p | tee "$CACHE_FILE" /dev/stdout
+    # FIXME command -v does not work here for some reason (raspbian)
+    if sudo needrestart --help >/dev/null 2>&1
+    then
+      sudo needrestart -m a -b -n -r l -l -k -p | tee "$CACHE_FILE" /dev/stdout
+    else
+      echo "ERROR: Please install needrestart" >&2
+    fi
   else
     # echo "CACHE HIT" >&2
     echo "$val"
@@ -186,14 +186,11 @@ check_extra() {
         echo "/var/run/reboot-required is present on the system"
         failed=1
       fi
-      if sudo needrestart --help >/dev/null 2>&1
+      need_r="$(needrestart_cached)"
+      if echo "$need_r" | grep -q CRIT
       then
-        need_r="$(needrestart_cached)"
-        if echo "$need_r" | grep -q CRIT
-        then
-          echo "$need_r"
-          failed=1
-        fi
+        echo "$need_r"
+        failed=1
       fi
       return $failed
       ;;
@@ -232,7 +229,13 @@ reboot_check() {
     fi
   fi
 
-  printf "%s\n" "$message"
+  if test "$(echo -e)" != "-e"
+  then
+    echo -e "$message"
+  else
+    # printf "%s\n" "$message"
+    echo "$message"
+  fi
 }
 
 rm "$CACHE_FILE" 2>/dev/null
