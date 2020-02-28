@@ -76,7 +76,7 @@ fedora_latest_installed() {
 
 raspbian_latest_installed() {
   needrestart_cached | \
-    sed -nr 's/CRIT - Kernel: (.+)!=([^ ]+) +.+/\2/p'
+    sed -nr 's/CRIT - Kernel: (.+)!=([^ ]+) +.+/\2/p' # | head -1
 }
 
 ubuntu_latest_installed() {
@@ -161,18 +161,17 @@ needrestart_cached() {
   val="$(cat "$CACHE_FILE" 2>/dev/null)"
   if test -z "$val"
   then
-    # echo "CACHE MISS..!" >&2
     # FIXME command -v does not work here for some reason (raspbian)
     if sudo needrestart --help >/dev/null 2>&1
     then
-      sudo needrestart -m a -b -n -r l -l -k -p | tee "$CACHE_FILE" /dev/stdout
+      # shellcheck disable=2024
+      sudo needrestart -m a -b -n -r l -l -k -p 2>/dev/null > "$CACHE_FILE"
+      val="$(cat "$CACHE_FILE")"
     else
       echo "ERROR: Please install needrestart" >&2
     fi
-  else
-    # echo "CACHE HIT" >&2
-    echo "$val"
   fi
+  echo "$val"
 }
 
 check_extra() {
@@ -206,29 +205,51 @@ check_extra() {
 }
 
 reboot_check() {
-  local kernel
   local message="No reboot required ✔"
-  local misc
+  local KERNEL MISC
+  local tmp
 
-  kernel=$(check_kernel_update)
-
-  if test $? -ne 0
+  if test "$#" -eq 0
   then
-    message="$kernel"
+    KERNEL=1
+    MISC=1
+  else
+    case "$1" in
+      -k|--kernel)
+        KERNEL=1
+        ;;
+      -m|--misc)
+        MISC=1
+        ;;
+    esac
   fi
 
-  misc=$(check_extra)
-
-  if test $? -ne 0
+  if test -n "$KERNEL"
   then
-    if test -z "$message"
+    tmp=$(check_kernel_update)
+
+    if test $? -ne 0
     then
-      message="$misc"
-    else
-      message="$message\n\n$misc"
+      message="$tmp"
     fi
   fi
 
+  if test -n "$MISC"
+  then
+    tmp=$(check_extra)
+
+    if test $? -ne 0
+    then
+      if test -z "$message"
+      then
+        message="$tmp"
+      else
+        message="$message\n\n$tmp"
+      fi
+    fi
+  fi
+
+  # shellcheck disable=2039
   if test "$(echo -e)" != "-e"
   then
     echo -e "$message"
@@ -248,9 +269,13 @@ case "$1" in
   *)
     # TODO Add flags for only checking the kernel, or the services
     # -k: kernel only
-    # -s: services only
+    # -m: Misc. services only
     # NONE: both
-    reboot_check
+    if test "$#" -gt 1
+    then
+      shift
+    fi
+    reboot_check "$@"
     ;;
 esac
 
