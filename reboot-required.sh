@@ -210,15 +210,13 @@ check_extra() {
 
 reboot_check() {
   local kernel
-  local message=No
+  local message="No reboot required ✔"
   local misc
-  local reboot_required=0
 
   kernel=$(check_kernel_update)
 
   if test $? -ne 0
   then
-    reboot_required=1
     message="$kernel"
   fi
 
@@ -226,7 +224,6 @@ reboot_check() {
 
   if test $? -ne 0
   then
-    reboot_required=1
     if test -z "$message"
     then
       message="$misc"
@@ -235,16 +232,11 @@ reboot_check() {
     fi
   fi
 
-  if test "$reboot_required" -ne 0
-  then
-    message="Yes\n$message"
-  fi
-
-  printf "$message\n"
+  printf "%s\n" "$message"
 }
 
-rm "$CACHE_FILE"
-trap 'echo "Cleanup caches" >&2; rm -f "$CACHE_FILE"' EXIT
+rm "$CACHE_FILE" 2>/dev/null
+trap 'rm -f "$CACHE_FILE"' EXIT
 
 case "$1" in
   kernel-flavour)
