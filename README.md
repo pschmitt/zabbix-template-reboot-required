@@ -2,13 +2,25 @@
 
 ## Agent setup
 
+### Docker
+
+**WIP**
+
+1. sudo
+This template requires `sudo` to be available inside the zabbix-agent container.
+
+You can bind-mount the supplied sudoers config with `-v ./sudoers/zabbix-docker:/etc/sudoers.d/zabbix:ro`.
+
+Bear in mind that this file should be owned by root and its permissions set to `0600`.
+
+2. You obviously also need to make the script available as well: `-v ./reboot-required.sh:/usr/local/bin/reboot-required.sh`
+
 ### OpenWRT
 
 1. You need to install `sudo`:
 
 ```
-opkg update
-opkg install sudo
+opkg update && opkg install sudo
 ```
 
 2. Copy `sudoers.d/zabbix-openwrt` to `/etc/sudoers.d/zabbix-reboot-required`

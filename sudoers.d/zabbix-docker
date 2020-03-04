@@ -1,0 +1,1 @@
+zabbix ALL=(ALL) NOPASSWD:SETENV: /usr/local/bin/chroot.sh
