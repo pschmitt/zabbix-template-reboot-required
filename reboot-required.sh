@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
 
 usage() {
-  echo "Usage: $(basename "$0") [kernel-flavour] [-m] [-k]"
+  echo "Usage: $(basename "$0") [-K|-s|-k]"
   echo
   echo "-K: Output the current kernel flavor"
   echo "-k: Only check for updated kernel version (default: enabled)"
-  echo "-m: Perform extra checks (default: enabled)"
+  echo "-s: Check whether services need to be restarted (default: enabled)"
 }
 
 _chroot() {
