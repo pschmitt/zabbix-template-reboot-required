@@ -15,6 +15,8 @@ Bear in mind that this file should be owned by root and its permissions set to `
 
 2. You obviously also need to make the script available as well: `-v ./reboot-required.sh:/usr/local/bin/reboot-required.sh`
 
+3. To be able to chroot inside the host you need mount the rootfs like so: `-v /:/rootfs`.
+
 ### OpenWRT
 
 1. You need to install `sudo`:
