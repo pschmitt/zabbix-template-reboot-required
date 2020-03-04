@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>3.2</version>
-    <date>2016-12-09T09:12:10Z</date>
+    <version>4.4</version>
+    <date>2020-03-04T17:40:00Z</date>
     <groups>
         <group>
-            <name>Linux servers</name>
+            <name>Templates</name>
         </group>
     </groups>
     <templates>
@@ -14,7 +14,7 @@
             <description>Whether a reboot is required</description>
             <groups>
                 <group>
-                    <name>Linux servers</name>
+                    <name>Templates</name>
                 </group>
             </groups>
             <applications>
@@ -24,153 +24,145 @@
             </applications>
             <items>
                 <item>
-                    <name>Linux Kernel Flavour</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>linux.kernel.flavour</key>
+                    <name>Reboot required (Kernel update)</name>
+                    <key>reboot-required.kernel</key>
                     <delay>3600</delay>
-                    <history>90</history>
                     <trends>0</trends>
-                    <status>0</status>
-                    <value_type>4</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
+                    <value_type>TEXT</value_type>
                     <applications>
                         <application>
                             <name>Reboot required</name>
                         </application>
                     </applications>
-                    <valuemap/>
-                    <logtimefmt/>
+                    <request_method>POST</request_method>
+                    <triggers>
+                        <trigger>
+                            <expression>{regexp(^.*$)}=0 and {regexp(^No reboot required.*$)}=0</expression>
+                            <name>Reboot required (Kernel update)</name>
+                            <priority>INFO</priority>
+                        </trigger>
+                    </triggers>
                 </item>
                 <item>
-                    <name>Reboot required</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>linux.reboot_required</key>
+                    <name>Services needing a restart</name>
+                    <key>reboot-required.services</key>
                     <delay>3600</delay>
-                    <history>90</history>
                     <trends>0</trends>
-                    <status>0</status>
-                    <value_type>4</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
+                    <value_type>TEXT</value_type>
                     <applications>
                         <application>
                             <name>Reboot required</name>
                         </application>
                     </applications>
-                    <valuemap/>
-                    <logtimefmt/>
+                    <request_method>POST</request_method>
+                    <triggers>
+                        <trigger>
+                            <expression>{regexp(^.*$)}=0 and {regexp(^No reboot required.*$)}=0</expression>
+                            <name>Some services need to be restarted on {HOST.NAME}</name>
+                            <priority>INFO</priority>
+                        </trigger>
+                    </triggers>
                 </item>
             </items>
             <discovery_rules>
                 <discovery_rule>
                     <name>Linux Kernel Flavour</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <snmp_oid/>
                     <key>linux.pkg.kernel.discover</key>
                     <delay>30</delay>
-                    <status>0</status>
-                    <allowed_hosts/>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <filter>
-                        <evaltype>0</evaltype>
-                        <formula/>
-                        <conditions/>
-                    </filter>
-                    <lifetime>30</lifetime>
-                    <description/>
-                    <item_prototypes/>
-                    <trigger_prototypes/>
-                    <graph_prototypes/>
-                    <host_prototypes/>
+                    <request_method>POST</request_method>
                 </discovery_rule>
             </discovery_rules>
-            <httptests/>
-            <macros/>
-            <templates/>
-            <screens/>
+            <macros>
+                <macro>
+                    <macro>{$SSH_USERNAME}</macro>
+                    <value>pschmitt</value>
+                    <description>SSH username</description>
+                </macro>
+            </macros>
+        </template>
+        <template>
+            <template>Linux - Reboot required - SSH</template>
+            <name>Reboot required (SSH)</name>
+            <description>Whether a reboot is required</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Reboot required</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Kernel update</name>
+                    <type>SSH</type>
+                    <key>ssh.run[reboot-required.sh_kernel,,{$SSH_PORT}]</key>
+                    <delay>30m</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>curl -qqsL https://raw.githubusercontent.com/pschmitt/zabbix-reboot-required/master/reboot-required.sh &gt; /tmp/reboot-required_kernel.sh&#13;
+sh /tmp/reboot-required_kernel.sh -k&#13;
+rm /tmp/reboot-required_kernel.sh</params>
+                    <username>{$SSH_USERNAME}</username>
+                    <password>{$SSH_PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Reboot required</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{regexp(^No reboot required.*$)}&lt;&gt;1</expression>
+                            <name>Reboot required</name>
+                            <priority>INFO</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Services needing a restart</name>
+                    <type>SSH</type>
+                    <key>ssh.run[reboot-required.sh_services,,{$SSH_PORT}]</key>
+                    <delay>30m</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>curl -qqsL https://raw.githubusercontent.com/pschmitt/zabbix-reboot-required/master/reboot-required.sh &gt; /tmp/reboot-required_services.sh&#13;
+sh /tmp/reboot-required_services.sh -s&#13;
+rm /tmp/reboot-required_services.sh</params>
+                    <username>{$SSH_USERNAME}</username>
+                    <password>{$SSH_PASSWORD}</password>
+                    <applications>
+                        <application>
+                            <name>Reboot required</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{regexp(^No reboot required.*$)}&lt;&gt;1 and {regexp(^\s*$)}=0</expression>
+                            <name>Some services need to be restarted</name>
+                            <priority>INFO</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <macros>
+                <macro>
+                    <macro>{$SSH_PASSWORD}</macro>
+                    <value>changeme</value>
+                    <description>SSH password</description>
+                </macro>
+                <macro>
+                    <macro>{$SSH_PORT}</macro>
+                    <value>22</value>
+                    <description>SSH port (default: 22)</description>
+                </macro>
+                <macro>
+                    <macro>{$SSH_USERNAME}</macro>
+                    <value>root</value>
+                    <description>SSH username (default: root)</description>
+                </macro>
+            </macros>
         </template>
     </templates>
-    <triggers>
-        <trigger>
-            <expression>{Linux - Reboot required:linux.reboot_required.regexp(^Yes.*$)}=1</expression>
-            <recovery_mode>1</recovery_mode>
-            <recovery_expression>{Linux - Reboot required:linux.reboot_required.regexp(^No.*$)}=1</recovery_expression>
-            <name>Reboot required</name>
-            <correlation_mode>0</correlation_mode>
-            <correlation_tag/>
-            <url/>
-            <status>0</status>
-            <priority>1</priority>
-            <description/>
-            <type>0</type>
-            <manual_close>0</manual_close>
-            <dependencies/>
-            <tags/>
-        </trigger>
-    </triggers>
 </zabbix_export>
