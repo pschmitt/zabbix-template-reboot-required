@@ -8,11 +8,10 @@ usage() {
   echo "-m: Perform extra checks (default: enabled)"
 }
 
-export PATH="${PATH}:/etc/zabbix/bin"
 _chroot() {
   if test -e /.dockerenv
   then
-    sudo -E chroot.sh bash -c "$*"
+    sudo -E chroot /rootfs bash -c "$*"
   else
     eval "$@"
   fi
