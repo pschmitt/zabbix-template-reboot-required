@@ -7,6 +7,7 @@
 **WIP**
 
 1. sudo
+
 This template requires `sudo` to be available inside the zabbix-agent container.
 
 You can bind-mount the supplied sudoers config with `-v ./sudoers/zabbix-docker:/etc/sudoers.d/zabbix:ro`.
