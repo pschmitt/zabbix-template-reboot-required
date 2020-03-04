@@ -8,10 +8,20 @@ usage() {
   echo "-m: Perform extra checks (default: enabled)"
 }
 
+export PATH="${PATH}:/etc/zabbix/bin"
+_chroot() {
+  if test -e /.dockerenv
+  then
+    sudo -E chroot.sh bash -c "$*"
+  else
+    eval "$@"
+  fi
+}
+
 arch_current_version() {
   # Remove the kernel flavor at the end
   # 5.4.22-1-lts -> 5.4.22-1
-  uname -r | sed 's/-[^0-9]*$//'
+  _chroot uname -r | sed 's/-[^0-9]*$//'
 }
 
 archarm_current_version() {
@@ -52,7 +62,7 @@ arch_latest_installed() {
       package=linux
       ;;
   esac
-  pacman -Qi "$package" | awk '/Version/ {print $3}'
+  _chroot pacman -Qi "$package" | awk '/Version/ {print $3}'
 }
 
 archarm_latest_installed() {
@@ -63,15 +73,15 @@ archarm_latest_installed() {
       package=linux-raspberrypi
       ;;
   esac
-  pacman -Qi "$package" | awk '/Version/ {print $3}'
+  _chroot pacman -Qi "$package" | awk '/Version/ {print $3}'
 }
 
 openwrt_latest_installed() {
-  opkg list-installed | awk '/kernel - / {print $NF}' | cut -d - -f 1
+  _chroot opkg list-installed | awk '/kernel - / {print $NF}' | cut -d - -f 1
 }
 
 fedora_latest_installed() {
-  dnf list installed kernel | \
+  _chroot dnf list installed kernel | \
     awk '{ print $2 }' | sort -rn | head -1 | sed -r 's/.fc[0-9]+$//g'
 }
 
@@ -91,16 +101,16 @@ raspbian_latest_installed() {
       ;;
   esac
 
-  if test -e /usr/lib/needrestart/vmlinuz-get-version
+  if _chroot test -e /usr/lib/needrestart/vmlinuz-get-version
   then
-    val="$(/usr/lib/needrestart/vmlinuz-get-version "$kernel_file")"
+    val="$(_chroot /usr/lib/needrestart/vmlinuz-get-version "$kernel_file")"
     # echo "Unable to determine current kernel version. Please install needrestart." >&2
   else
     # Download latest vmlinuz-get-version
-    curl -qqsL -o /tmp/vmlinuz-get-version \
+    _chroot curl -qqsL -o /tmp/vmlinuz-get-version \
       https://github.com/liske/needrestart/raw/master/lib/vmlinuz-get-version
-    val="$(bash /tmp/vmlinuz-get-version "$kernel_file")"
-    rm /tmp/vmlinuz-get-version
+    val="$(_chroot bash /tmp/vmlinuz-get-version "$kernel_file")"
+    _chroot rm /tmp/vmlinuz-get-version
   fi
   # Extract version
   # Linux version 4.19.97-v7+ (dom@buildbot) (gcc version[...]  -> 4.19.97
@@ -109,7 +119,7 @@ raspbian_latest_installed() {
 }
 
 ubuntu_latest_installed() {
-  dpkg --list | grep linux-image | \
+  _chroot dpkg --list | grep linux-image | \
     grep -v 'linux-image-generic' | \
     awk '{ print $2 }' | \
     sort -nr | head -1 | \
@@ -117,7 +127,7 @@ ubuntu_latest_installed() {
 }
 
 arch_kernel_flavour() {
-  case "$(uname -a)" in
+  case "$(_chroot uname -a)" in
     *vfio*) echo VFIO ;;
     *lts*) echo LTS ;;
     *) echo latest ;;
@@ -189,10 +199,10 @@ check_services() {
   local failed=0
   local need_r
 
-  if sudo needrestart --help >/dev/null 2>&1
+  if _chroot sudo needrestart --help >/dev/null 2>&1
   then
     # shellcheck disable=2024
-    need_r="$(sudo needrestart -m a -b -n -r l -l -p 2>/dev/null)"
+    need_r="$(_chroot sudo needrestart -m a -b -n -r l -l -p 2>/dev/null)"
   else
     echo "ERROR: Please install needrestart" >&2
   fi
@@ -204,14 +214,14 @@ check_services() {
 
   case "$ID" in
     ubuntu|neon|raspbian)
-      if test -e /var/run/reboot-required
+      if _chroot test -e /var/run/reboot-required
       then
         echo "/var/run/reboot-required is present on the system"
         failed=1
       fi
       ;;
     fedora)
-      needs_r=$(sudo needs-restarting -r)
+      needs_r=$(_chroot sudo needs-restarting -r)
       if test $? -eq 1
       then
         echo "$needs_r"
@@ -284,15 +294,24 @@ reboot_check() {
   fi
 }
 
-if test -r /etc/os-release
-then
-  # shellcheck disable=1091
-  . /etc/os-release
-# Old (pre 19.07.1) OpenWRT version don't carry an /etc/os-release
-elif test -r /etc/openwrt_version
-then
-  ID=openwrt
-fi
+determine_os() {
+  local os_id
+
+  os_id="$(_chroot cat /etc/os-release | sed -nr 's/^ID="?([^"]+)"?/\1/p')"
+
+  if test -z "$os_id"
+  then
+    # Old (pre 19.07.1) OpenWRT version don't carry an /etc/os-release
+    if _chroot test -r /etc/openwrt_version
+    then
+      os_id=openwrt
+    fi
+    echo "$os_id"
+  fi
+  echo "$os_id"
+}
+
+ID="$(determine_os)"
 
 case "$1" in
   help|h|--help|-h)
