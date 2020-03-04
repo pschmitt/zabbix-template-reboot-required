@@ -77,7 +77,7 @@ archarm_latest_installed() {
 }
 
 openwrt_latest_installed() {
-  _chroot opkg list-installed | awk '/kernel - / {print $NF}' | cut -d - -f 1
+  _chroot sudo opkg list-installed | awk '/kernel - / {print $NF}' | cut -d - -f 1
 }
 
 fedora_latest_installed() {
