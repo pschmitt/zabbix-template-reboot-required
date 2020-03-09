@@ -10,7 +10,7 @@
 
 This template requires `sudo` to be available inside the zabbix-agent container.
 
-You can bind-mount the supplied sudoers config with `-v ./sudoers/zabbix-docker:/etc/sudoers.d/zabbix:ro`.
+You can bind-mount the supplied sudoers config with `-v ./sudoers/reboot-required.docker:/etc/sudoers.d/reboot-required:ro`.
 
 Bear in mind that this file should be owned by root and its permissions set to `0600`.
 
@@ -28,7 +28,7 @@ Bear in mind that this file should be owned by root and its permissions set to `
 opkg update && opkg install sudo
 ```
 
-2. Copy `sudoers.d/zabbix-openwrt` to `/etc/sudoers.d/zabbix-reboot-required`
+2. Copy `sudoers.d/reboot-required.openwrt` to `/etc/sudoers.d/reboot-required`
 
 3. Copy `zbx-reboot-required.sh` to `/etc/zabbix_zabbix_agentd.d/bin/zbx-reboot-required.sh`
 

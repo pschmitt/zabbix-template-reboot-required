@@ -1,2 +1,0 @@
-Cmnd_Alias OPKG_LIST_INSTALLED=/bin/opkg list-installed
-zabbix ALL=(ALL) NOPASSWD: OPKG_LIST_INSTALLED
