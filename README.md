@@ -4,8 +4,6 @@
 
 ### Docker
 
-**WIP**
-
 1. sudo
 
 This template requires `sudo` to be available inside the zabbix-agent container.
@@ -16,7 +14,7 @@ You can bind-mount the supplied sudoers config with:
 
 Bear in mind that this file should be owned by root and its permissions set to `0600`.
 
-2. You obviously also need to make the script available as well: `-v ./zbx-reboot-required.sh:/usr/local/bin/zbx-reboot-required.sh`
+2. You obviously also need to make the script available as well: `-v ./zbx-reboot-required.sh:/zabbix/bin/zbx-reboot-required.sh`
 
 3. Don't forget the config: `-v ./zabbix_agentd.d/reboot-required.docker.conf:/etc/zabbix/zabbix_agentd.d/reboot-required.conf:ro`
 
